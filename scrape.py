@@ -3,6 +3,9 @@ import re
 from bs4 import BeautifulSoup
 import pandas
 import time
+import youtubesearchpython
+
+time_start = time.time()  # start time
 
 # Arguments required to validate scrape requests (i.e. create virtual web browser)
 user_agents = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
@@ -20,7 +23,8 @@ country_logos = []
 # Empty central dataframe
 df_central = pandas.DataFrame(columns=['Event', 'Event Link', 'Event Logo',
                                        'Country', 'Country Link', 'Country Logo',
-                                       'Artist', 'Artist Link', 'Song', 'Song Link'])
+                                       'Artist', 'Artist Link', 'Song', 'Song Link',
+                                       'Flag'])
 
 # Search for all high level event info (i.e. non-event specific)
 event_response = session.get("https://eurovision.tv/events", headers=user_agents)
@@ -132,7 +136,7 @@ df_central.update(df_country)
 df_central.reset_index(inplace=True)
 
 # Loop through artist pages to find song links (where possible)
-for song in range(len(df_central)):
+for song in range(800, len(df_central)):
 
     time.sleep(1)  # wait one second to avoid site timeouts
 
@@ -150,12 +154,38 @@ for song in range(len(df_central)):
 
     activeArtist = BeautifulSoup(artist.text, "html.parser")
 
-    # Extract Youtube song link
+    # Extract Youtube song link from Eurovision page (if exists)
     for link in activeArtist.findAll('a',
                                      attrs={'href': re.compile(r"https://youtube.com/watch")}):
-        df_central['Song Link'][song] = link.get('href')
+        df_central.at[song, 'Song Link'] = link.get('href')
+
+    # Extract Youtube song link from Youtube search results if Eurovision page does not include it
+    if df_central.isnull()['Song Link'][song]:
+
+        df_central.at[song, 'Flag'] = 1  # flag if song link is 'best guess' rather than Eurovision provided link
+
+        ytString = ("Eurovision"+" "+df_central['Event'][song]+" "+df_central['Country'][song]+" "
+                    + df_central['Artist'][song]+" "+df_central['Song'][song])
+
+        ytQuery = youtubesearchpython.VideosSearch(ytString, limit=1)  # only take first result
+
+        # Try statement to check whether the Youtube search brings up any results
+        try:
+            ytLink = ytQuery.result()['result'][0]['link']  # extract link from nested dictionary
+        except IndexError:
+            print("Song "+str(song+1)+" of "+str(len(df_central))+" skipped. URL: "+"not found")
+            continue
+
+        df_central.at[song, 'Song Link'] = ytLink
+    else:
+        df_central.at[song, 'Flag'] = 0
 
     print("Song "+str(song+1)+" of "+str(len(df_central))+" complete: "+df_central['Song'][song])
 
 # Save document as .csv
 df_central.to_csv('vision.csv', index=False)
+
+time_end = time.time()  # end time
+time_taken = (time_end-time_start)/60  # convert to minutes
+
+print("Script complete. Time elapsed: %.0f mins." % time_taken)
