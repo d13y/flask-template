@@ -2,6 +2,7 @@ import requests
 import re
 from bs4 import BeautifulSoup
 import pandas
+import numpy
 import time
 import youtubesearchpython
 
@@ -104,7 +105,7 @@ for year in range(len(event_links)):
     for link in activeSheet.findAll('div',
                                     attrs={'class': re.compile("w-full md:w-1/3 lg:w-1/4 flex")}):
         if link.a.get('href').find("participant") == -1:
-            year_artist_links.append(float('nan'))
+            year_artist_links.append(numpy.nan)
         else:
             year_artist_links.append(link.a.get('href'))
 
@@ -181,6 +182,9 @@ for song in range(1, len(df_central)):
         df_central.at[song, 'Flag'] = 0
 
     print("Song "+str(song+1)+" of "+str(len(df_central))+" complete: "+df_central['Song'][song])
+
+# Clean obviously incorrect entries
+df_central.loc[(df_central.Song == 'No song yet'), 'Song Link'] = numpy.nan
 
 # Save document as .csv
 df_central.to_csv('vision.csv', index=False)
