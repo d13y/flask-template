@@ -136,7 +136,7 @@ df_central.update(df_country)
 df_central.reset_index(inplace=True)
 
 # Loop through artist pages to find song links (where possible)
-for song in range(800, len(df_central)):
+for song in range(1, len(df_central)):
 
     time.sleep(1)  # wait one second to avoid site timeouts
 
