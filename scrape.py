@@ -1,10 +1,10 @@
 import requests
 import re
 from bs4 import BeautifulSoup
-import pandas
+import pandas as pd
 import numpy
 import time
-import youtubesearchpython
+import youtubesearchpython as ysp
 
 time_start = time.time()  # start time
 
@@ -22,10 +22,10 @@ country_names = []
 country_logos = []
 
 # Empty central dataframe
-df_central = pandas.DataFrame(columns=['Event', 'Event Link', 'Event Logo',
-                                       'Country', 'Country Link', 'Country Logo',
-                                       'Artist', 'Artist Link', 'Song', 'Song Link',
-                                       'Flag'])
+df_central = pd.DataFrame(columns=['Event', 'Event Link', 'Event Logo',
+                                   'Country', 'Country Link', 'Country Logo',
+                                   'Artist', 'Artist Link', 'Artist Image', 'Song', 'Song Link',
+                                   'Flag'])
 
 # Search for all high level event info (i.e. non-event specific)
 event_response = session.get("https://eurovision.tv/events", headers=user_agents)
@@ -61,10 +61,11 @@ for link in country_page.findAll('img',
     country_logos.append(link.get('src'))
 
 # Create dataframes
-df_event = pandas.DataFrame(list(zip(event_names, event_links, event_logos)),
-                            columns=['Event', 'Event Link', 'Event Logo'])
-df_country = pandas.DataFrame(list(zip(country_names, country_links, country_logos)),
-                              columns=['Country', 'Country Link', 'Country Logo'])
+df_event = pd.DataFrame(list(zip(event_names, event_links, event_logos)),
+                        columns=['Event', 'Event Link', 'Event Logo'])
+df_country = pd.DataFrame(list(zip(country_names, country_links, country_logos)),
+                          columns=['Country', 'Country Link', 'Country Logo'])
+
 df_event = df_event.set_index('Event')
 df_country = df_country.set_index('Country')
 
@@ -117,10 +118,10 @@ for year in range(len(event_links)):
         year_song_names.append(link.text.strip().split("\n")[-1])
 
     # Convert into dataframe, indexed by active event
-    df_year = pandas.DataFrame(list(zip(year_country_names,
-                                        year_artist_names, year_artist_links, year_song_names)),
-                               columns=['Country',
-                                        'Artist', 'Artist Link', 'Song'])
+    df_year = pd.DataFrame(list(zip(year_country_names,
+                                    year_artist_names, year_artist_links, year_song_names)),
+                           columns=['Country',
+                                    'Artist', 'Artist Link', 'Song'])
     df_year['Event'] = activeEvent
 
     # Append dataframe to central dataframe
@@ -160,6 +161,12 @@ for song in range(1, len(df_central)):
                                      attrs={'href': re.compile(r"https://youtube.com/watch")}):
         df_central.at[song, 'Song Link'] = link.get('href')
 
+    # Extract artist image from banner of Eurovision page
+    for link in activeArtist.findAll('img',
+                                     attrs={
+                                         'src': re.compile(r"^https://static.eurovision.tv/hb-cgi/.*\.hero.jpeg$")}):
+        df_central.at[song, 'Artist Image'] = link.get('src')
+
     # Extract Youtube song link from Youtube search results if Eurovision page does not include it
     if df_central.isnull()['Song Link'][song]:
 
@@ -168,7 +175,7 @@ for song in range(1, len(df_central)):
         ytString = ("Eurovision"+" "+df_central['Event'][song]+" "+df_central['Country'][song]+" "
                     + df_central['Artist'][song]+" "+df_central['Song'][song])
 
-        ytQuery = youtubesearchpython.VideosSearch(ytString, limit=1)  # only take first result
+        ytQuery = ysp.VideosSearch(ytString, limit=1)  # only take first result
 
         # Try statement to check whether the Youtube search brings up any results
         try:
@@ -185,9 +192,21 @@ for song in range(1, len(df_central)):
 
 # Clean obviously incorrect entries
 df_central.loc[(df_central.Song == 'No song yet'), 'Song Link'] = numpy.nan
+df_central['Flag'] = df_central['Flag'].fillna(1)
 
-# Save document as .csv
-df_central.to_csv('vision.csv', index=False)
+# Create artist dataframe
+df_artist = df_central[['Country', 'Event', 'Artist', 'Artist Link', 'Song', 'Song Link']]
+
+# Save data
+folder = "data\\"
+df_central.to_csv(folder+'vision.csv', index=False)
+df_central.to_parquet(folder+'vision.parquet', index=False)
+df_event.to_csv(folder+'events.csv', index=False)
+df_event.to_parquet(folder+'events.parquet', index=False)
+df_country.to_csv(folder+'countries.csv', index=False)
+df_country.to_parquet(folder+'countries.parquet', index=False)
+df_artist.to_csv(folder+'artist.csv', index=False)
+df_artist.to_parquet(folder+'parquet.csv', index=False)
 
 time_end = time.time()  # end time
 time_taken = (time_end-time_start)/60  # convert to minutes
