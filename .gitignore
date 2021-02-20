@@ -1,5 +1,5 @@
 # Code specific files
-/data/database
+/source/data
 /flaskapp/static/profile_pics
 /flaskapp/to-do.txt
 *site.db
