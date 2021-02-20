@@ -1,9 +1,8 @@
 # Code specific files
-/data*
-*site.db
+/data/database*
 /flaskapp/static/profile_pics*
 /flaskapp/to-do.txt
-
+*site.db
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
