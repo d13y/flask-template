@@ -1,7 +1,8 @@
 # Code specific files
-*vision*
-*to-do
-site.db
+/data/vision*
+*site.db
+/flaskapp/static/profile_pics*
+/flaskapp/to-do.txt
 
 
 # Byte-compiled / optimized / DLL files
