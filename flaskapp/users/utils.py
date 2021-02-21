@@ -2,6 +2,7 @@ import secrets
 import os
 from PIL import Image
 from flask import url_for, current_app
+from flask_login import current_user
 from flask_mail import Message
 from flaskapp import mail
 
@@ -36,7 +37,7 @@ def send_auth_email(newuser):
 
     token = newuser.get_emailauth_token()
     msg = Message('Account Verification',
-                  sender='noreply@yourovision.com',
+                  sender='noreply@flaskapp.com',
                   recipients=[newuser.email])
     msg.body = f'''Verify account registration link:
 {url_for('users.auth_token', token=token, _external=True)}
@@ -51,7 +52,7 @@ def send_pwreset_email(user):
 
     token = user.get_pwreset_token()
     msg = Message('Password Reset Request',
-                  sender='noreply@yourovision.com',
+                  sender='noreply@flaskapp.com',
                   recipients=[user.email])
     msg.body = f'''Reset password link:
 {url_for('users.reset_token', token=token, _external=True)}

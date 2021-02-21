@@ -1,3 +1,4 @@
+from datetime import datetime
 from flask import Blueprint, render_template, url_for, flash, redirect, request
 from flask_login import login_user, logout_user, current_user, login_required
 from flaskapp import db, bcrypt
@@ -21,9 +22,18 @@ def register():
     form = RegistrationForm()
 
     if form.validate_on_submit():
+        # Remove old user info if exists (if unvalidated)
+        olduser = User.query.filter(User.username.ilike(form.username.data)).first()
+        if olduser and olduser.email_confirm is False:
+            db.session.delete(olduser)
+            db.session.commit()
+        oldemail = User.query.filter(User.email.ilike(form.email.data)).first()
+        if oldemail and oldemail.email_confirm is False:
+            db.session.delete(oldemail)
+            db.session.commit()
         # Add user to db
         hashed_pw = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
-        newuser = User(username=form.username.data, email=form.email.data, password=hashed_pw) # noqa
+        newuser = User(username=form.username.data, email=form.email.data, password=hashed_pw, date_register=datetime.now()) # noqa
         db.session.add(newuser)
         db.session.commit()
         send_auth_email(newuser)
@@ -48,9 +58,10 @@ def auth_token(token):
         return redirect(url_for('users.register'))
     else:
         user.email_confirm = True
+        user.date_verify = datetime.now()
         db.session.commit()
         # Inform user that email has been verified has been reset
-        flash(f'Email verified for {User.email.data}!', 'success')
+        flash(f'Email verified!', 'success')
         return redirect(url_for('users.login'))
 
 
@@ -71,7 +82,7 @@ def login():
                 prev_page = request.args.get('next')
                 return redirect(prev_page) if prev_page else redirect(url_for('main.home'))
             else:
-                flash(f'Account not verified. Please check emails for instructions.', 'danger')
+                flash(f'Account not verified. Please check emails for instructions.', 'warning')
         else:
             flash(f'Login unsuccessful. Please check details.', 'danger')
 

@@ -1,3 +1,4 @@
+from datetime import datetime
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
 from wtforms import StringField, PasswordField, SubmitField, BooleanField
@@ -19,14 +20,18 @@ class RegistrationForm(FlaskForm):
     submit = SubmitField('Sign Up')
 
     def validate_username(self, username):
-        user = User.query.filter(User.username.ilike(username.data)).first()
-        if user:
-            raise ValidationError('Username already taken.')
+        olduser = User.query.filter(User.username.ilike(username.data)).first()
+        if olduser:
+            timediff = datetime.now() - olduser.date_register
+            if olduser.email_confirm or timediff.seconds < 900:
+                raise ValidationError('Username already taken.')
 
     def validate_email(self, email):
-        email = User.query.filter(User.email.ilike(email.data)).first()
-        if email:
-            raise ValidationError('Email already taken.')
+        oldemail = User.query.filter(User.email.ilike(email.data)).first()
+        if oldemail:
+            timediff = datetime.now() - oldemail.date_register
+            if oldemail.email_confirm or timediff.seconds < 900:
+                raise ValidationError('Email already taken.')
 
 
 class LoginForm(FlaskForm):
