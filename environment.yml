@@ -15,7 +15,6 @@ dependencies:
   - anaconda==2020.11=py38_0
   - anaconda-navigator
   - navigator-updater
-  - pyarrow
   - flask-wtf
   - email_validator
   - flask-sqlalchemy
@@ -23,3 +22,4 @@ dependencies:
   - flask-bcrypt
   - flask-login
   - flask-mail
+

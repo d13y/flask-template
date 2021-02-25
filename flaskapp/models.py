@@ -20,9 +20,11 @@ class User(db.Model, UserMixin):
     image_file = db.Column(db.String(128), nullable=False, default='default.jpg')
     password = db.Column(db.String(60), nullable=False)
     email_confirm = db.Column(db.Boolean, nullable=False, default=False)
+    date_register = db.Column(db.DateTime, nullable=False)
+    date_verify = db.Column(db.DateTime, nullable=True)
 
     # Email authentication
-    def get_emailauth_token(self, expires_seconds=3600):
+    def get_emailauth_token(self, expires_seconds=900):
         s = Serializer(current_app.config['SECRET_KEY'], expires_seconds)
         return s.dumps({'user_id': self.id}).decode('utf-8')
 
