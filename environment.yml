@@ -1,4 +1,4 @@
-name: base
+name: flask-template
 channels:
   - conda-forge
   - defaults
