@@ -121,7 +121,7 @@ venv.bak/
 .ropeproject
 
 # PyCHarm project settings
-.idea
+*.idea
 
 # mkdocs documentation
 /site
