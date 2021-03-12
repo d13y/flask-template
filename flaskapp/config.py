@@ -11,5 +11,5 @@ class Config:
     MAIL_SERVER = 'smtp.googlemail.com'  # using gmail
     MAIL_PORT = '587'  # req port info
     MAIL_USE_TLS = True
-    MAIL_USERNAME = os.environ.get('FLASK_EMAIL_USER')  # gmail account
+    MAIL_USERNAME = os.environ.get('FLASK_EMAIL_USER')  # gmail account (requires disabling gmail's secure app access)
     MAIL_PASSWORD = os.environ.get('FLASK_EMAIL_PASS')  # gmail password
