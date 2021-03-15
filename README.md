@@ -11,6 +11,8 @@ This repository provides the following:
 
 
 ## Configuration
+This app uses [conda](https://docs.conda.io/en/latest/) for package management.
+
 ### App
 * The [config.py]((https://github.com/d13y/flask-template/blob/master/flaskapp/config.py)) file is used set required app parameters. Parameters include: secret key; SQL database info; and mail credentials.
 * Parameters are set for local usage. These can be set - and stored - in system environment variables. Tutorials: [Windows](https://www.youtube.com/watch?v=IolxqkL7cD8); and [Mac](https://www.youtube.com/watch?v=5iWhQWVXosU).
